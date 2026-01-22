@@ -74,9 +74,9 @@ Run tests:
 
 ```bash
 cd backend
-bun run test tests/database/
+bun run test
 ```
 
 ## Documentation
 
-See the [walkthrough document](../../../.gemini/antigravity/brain/5b6d9218-6523-4cd6-b00d-4a67469d0109/walkthrough.md) for complete implementation details.
+See the [Database Documentation](../../docs/DATABASE.md) for complete schema and security details.

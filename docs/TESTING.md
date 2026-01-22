@@ -288,17 +288,27 @@ it('should create user', async () => {
 
 ### 2. Mock External Dependencies
 
+#### Mocking Supabase Auth
+
+When testing authentication middleware, we mock the Supabase client to avoid making real API calls:
+
 ```typescript
 import { vi } from 'vitest';
+import { supabase } from '../src/config/supabase';
 
-// Mock Supabase client
 vi.mock('../src/config/supabase', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => Promise.resolve({ data: [] })),
-    })),
+    auth: {
+      getUser: vi.fn(),
+    },
   },
 }));
+
+// In your test:
+vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
+  data: { user: { id: 'test-user', email: 'test@example.com' } },
+  error: null,
+});
 ```
 
 ### 3. Use Test Fixtures

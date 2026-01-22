@@ -195,7 +195,7 @@ cd /Users/kusaihajuri/Projects/Personal-Gym-Tracker/backend
 bun run test
 ```
 
-Expected: 4/4 tests passing
+Expected: 78/78 tests passing
 
 **Frontend tests:**
 

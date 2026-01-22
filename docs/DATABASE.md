@@ -388,14 +388,14 @@ Each migration includes rollback instructions in comments:
 
 ```bash
 cd backend
-bun run test tests/database/security.test.ts
+bun run test
 ```
 
 Expected output:
 
 ```
-Test Files  1 passed (1)
-Tests  26 passed (26)
+Test Files  6 passed (6)
+Tests  78 passed (78)
 ```
 
 ## Best Practices

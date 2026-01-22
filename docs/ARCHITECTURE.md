@@ -12,13 +12,19 @@ Personal-Gym-Tracker/
 │   │   │   ├── env.ts         # Environment validation (Zod)
 │   │   │   └── supabase.ts    # Supabase client setup
 │   │   ├── middleware/        # Custom middleware
-│   │   │   ├── logger.ts      # Request logging
-│   │   │   └── error.ts       # Error handling
+│   │   │   ├── auth.ts        # JWT Authentication
+│   │   │   ├── logger.ts      # Structured Request logging
+│   │   │   └── error.ts       # Centralized Error handling
 │   │   ├── routes/            # API routes
 │   │   │   └── health.ts      # Health check endpoint
-│   │   └── index.ts           # Application entry point
+│   │   ├── index.ts           # Application entry point
+│   │   └── types.ts           # API type definitions
 │   ├── tests/                 # Test files
-│   │   └── health.test.ts     # Example tests
+│   │   ├── middleware/        # Middleware tests
+│   │   │   ├── auth.test.ts
+│   │   │   ├── error.test.ts
+│   │   │   └── logger.test.ts
+│   │   └── health.test.ts     # API tests
 │   ├── package.json           # Dependencies & scripts
 │   ├── tsconfig.json          # TypeScript config (strict)
 │   ├── vitest.config.ts       # Vitest config
@@ -157,10 +163,10 @@ export const env = envSchema.parse(process.env);
 ```typescript
 // middleware/error.ts
 export async function errorHandler(err: Error, c: Context) {
-  if (err instanceof HTTPException) {
-    return c.json({ error: err.message }, err.status);
+  if (err instanceof ApiError) {
+    return c.json({ success: false, error: err.message }, err.statusCode);
   }
-  return c.json({ error: 'Internal Server Error' }, 500);
+  return c.json({ success: false, error: 'Internal Server Error' }, 500);
 }
 ```
 
@@ -240,29 +246,30 @@ cd frontend && bun install
 ### Backend Request Flow
 
 ```
-Request → CORS Middleware → Logger Middleware → Route Handler → Response
-                                                      ↓
-                                                Error Handler
+Request → RequestId Gen → Logger → CORS → Auth Middleware → Route Handler → Response
+                                                                  ↓
+                                                            Error Handler
 ```
 
 ### Frontend Data Flow
 
 ```
-Component → Custom Hook → Supabase Client → Database
-                ↓
-            State Update
-                ↓
-            Re-render
+Component → Auth Hook → Custom Hook → Supabase Client → Database
+                 ↓
+             State Update
+                 ↓
+             Re-render
 ```
 
 ## Security Best Practices
 
 ### Backend
 
-1. **Environment Validation**: Zod schema ensures required vars exist
-2. **CORS Configuration**: Whitelist allowed origins
-3. **Error Handling**: Never expose internal errors to client
-4. **Service Role Key**: Only use server-side, never in frontend
+1. **JWT Verification**: Always verify tokens via Supabase Auth middleware
+2. **Environment Validation**: Zod schema ensures required vars exist
+3. **CORS Configuration**: Whitelist allowed origins
+4. **Error Handling**: Standardized responses, no internal leaks.
+5. **Service Role Key**: Only use server-side, never in frontend
 
 ### Frontend
 

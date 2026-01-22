@@ -2,8 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { errorHandler } from '../../src/middleware/error';
+import {
+    ValidationError,
+    UnauthorizedError,
+    NotFoundError,
+    ConflictError,
+    InternalServerError,
+} from '../../src/types';
 
-describe('Error Middleware', () => {
+describe('Error Middleware - Standardized Responses', () => {
     describe('HTTPException handling', () => {
         it('should handle HTTPException with custom status and message', async () => {
             const app = new Hono();
@@ -20,8 +27,8 @@ describe('Error Middleware', () => {
             expect(res.status).toBe(404);
             const body = await res.json();
             expect(body).toEqual({
+                success: false,
                 error: 'Resource not found',
-                status: 404,
             });
         });
 
@@ -42,8 +49,8 @@ describe('Error Middleware', () => {
             expect(res.status).toBe(400);
             const body = await res.json();
             expect(body).toEqual({
+                success: false,
                 error: 'Invalid request data',
-                status: 400,
             });
         });
 
@@ -62,8 +69,114 @@ describe('Error Middleware', () => {
             expect(res.status).toBe(401);
             const body = await res.json();
             expect(body).toEqual({
+                success: false,
                 error: 'Unauthorized access',
-                status: 401,
+            });
+        });
+    });
+
+    describe('Custom error classes handling', () => {
+        it('should handle ValidationError (400)', async () => {
+            const app = new Hono();
+
+            app.post('/test', (c) => {
+                throw new ValidationError('Email is required');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test', {
+                method: 'POST',
+            });
+            const res = await app.fetch(req);
+
+            expect(res.status).toBe(400);
+            const body = await res.json();
+            expect(body).toEqual({
+                success: false,
+                error: 'Email is required',
+            });
+        });
+
+        it('should handle UnauthorizedError (401)', async () => {
+            const app = new Hono();
+
+            app.get('/test', (c) => {
+                throw new UnauthorizedError('Invalid credentials');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test');
+            const res = await app.fetch(req);
+
+            expect(res.status).toBe(401);
+            const body = await res.json();
+            expect(body).toEqual({
+                success: false,
+                error: 'Invalid credentials',
+            });
+        });
+
+        it('should handle NotFoundError (404)', async () => {
+            const app = new Hono();
+
+            app.get('/test', (c) => {
+                throw new NotFoundError('User not found');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test');
+            const res = await app.fetch(req);
+
+            expect(res.status).toBe(404);
+            const body = await res.json();
+            expect(body).toEqual({
+                success: false,
+                error: 'User not found',
+            });
+        });
+
+        it('should handle ConflictError (409)', async () => {
+            const app = new Hono();
+
+            app.post('/test', (c) => {
+                throw new ConflictError('Email already exists');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test', {
+                method: 'POST',
+            });
+            const res = await app.fetch(req);
+
+            expect(res.status).toBe(409);
+            const body = await res.json();
+            expect(body).toEqual({
+                success: false,
+                error: 'Email already exists',
+            });
+        });
+
+        it('should handle InternalServerError (500)', async () => {
+            const app = new Hono();
+
+            app.get('/test', (c) => {
+                throw new InternalServerError('Database connection failed');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test');
+            const res = await app.fetch(req);
+
+            expect(res.status).toBe(500);
+            const body = await res.json();
+            expect(body).toEqual({
+                success: false,
+                error: 'Database connection failed',
             });
         });
     });
@@ -84,8 +197,8 @@ describe('Error Middleware', () => {
             expect(res.status).toBe(500);
             const body = await res.json();
             expect(body).toEqual({
-                error: 'Internal Server Error',
-                status: 500,
+                success: false,
+                error: 'Internal server error',
             });
         });
 
@@ -107,8 +220,8 @@ describe('Error Middleware', () => {
             expect(res.status).toBe(500);
             const body = await res.json();
             expect(body).toEqual({
-                error: 'Internal Server Error',
-                status: 500,
+                success: false,
+                error: 'Internal server error',
             });
         });
 
@@ -129,8 +242,8 @@ describe('Error Middleware', () => {
             expect(res.status).toBe(500);
             const body = await res.json();
             expect(body).toEqual({
-                error: 'Internal Server Error',
-                status: 500,
+                success: false,
+                error: 'Internal server error',
             });
         });
     });
@@ -149,10 +262,9 @@ describe('Error Middleware', () => {
             const req = new Request('http://localhost:3000/test');
             await app.fetch(req);
 
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Unhandled error:',
-                expect.any(Error)
-            );
+            expect(consoleErrorSpy).toHaveBeenCalled();
+            const logArgs = consoleErrorSpy.mock.calls[0];
+            expect(logArgs[0]).toContain('Error');
 
             consoleErrorSpy.mockRestore();
         });
@@ -173,6 +285,52 @@ describe('Error Middleware', () => {
             expect(consoleErrorSpy).not.toHaveBeenCalled();
 
             consoleErrorSpy.mockRestore();
+        });
+
+        it('should log stack trace in development mode', async () => {
+            const app = new Hono();
+            const originalEnv = process.env.NODE_ENV;
+            process.env.NODE_ENV = 'development';
+
+            const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+
+            app.get('/test', (c) => {
+                throw new Error('Test error with stack');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test');
+            await app.fetch(req);
+
+            expect(consoleErrorSpy).toHaveBeenCalled();
+
+            consoleErrorSpy.mockRestore();
+            process.env.NODE_ENV = originalEnv;
+        });
+    });
+
+    describe('Security - No sensitive data leakage', () => {
+        it('should not expose stack traces in production', async () => {
+            const app = new Hono();
+            const originalEnv = process.env.NODE_ENV;
+            process.env.NODE_ENV = 'production';
+
+            app.get('/test', (c) => {
+                throw new Error('Internal error with sensitive data');
+            });
+
+            app.onError(errorHandler);
+
+            const req = new Request('http://localhost:3000/test');
+            const res = await app.fetch(req);
+
+            const body = await res.json();
+            expect(body.error).toBe('Internal server error');
+            expect(body).not.toHaveProperty('stack');
+            expect(body).not.toHaveProperty('message');
+
+            process.env.NODE_ENV = originalEnv;
         });
     });
 });
