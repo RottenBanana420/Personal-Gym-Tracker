@@ -1,0 +1,50 @@
+{
+    "compilerOptions": {
+        // Type Checking
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUncheckedSideEffectImports": true,
+        // Modules
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "allowImportingTsExtensions": true,
+        // Emit
+        "noEmit": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        // JavaScript Support
+        "allowJs": false,
+        "checkJs": false,
+        // Interop Constraints
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
+        // Language and Environment
+        "target": "ESNext",
+        "lib": [
+            "ESNext"
+        ],
+        // Projects
+        "composite": false,
+        // Completeness
+        "skipLibCheck": true,
+        // Bun
+        "types": [
+            "bun-types"
+        ]
+    },
+    "include": [
+        "src/**/*",
+        "tests/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

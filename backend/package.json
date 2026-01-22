@@ -1,0 +1,33 @@
+{
+    "name": "personal-gym-tracker-backend",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "bun --watch src/index.ts",
+        "start": "bun src/index.ts",
+        "test": "bunx vitest run",
+        "test:watch": "bunx vitest",
+        "test:coverage": "bunx vitest run --coverage",
+        "lint": "eslint . --ext .ts",
+        "lint:fix": "eslint . --ext .ts --fix",
+        "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+        "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "hono": "latest",
+        "@hono/zod-validator": "latest",
+        "@supabase/supabase-js": "latest",
+        "zod": "latest"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@typescript-eslint/eslint-plugin": "latest",
+        "@typescript-eslint/parser": "latest",
+        "eslint": "latest",
+        "prettier": "latest",
+        "typescript": "latest",
+        "vitest": "latest",
+        "@vitest/coverage-v8": "latest"
+    }
+}
