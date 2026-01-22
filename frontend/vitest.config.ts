@@ -20,14 +20,9 @@ export default defineConfig({
             VITE_API_URL: 'http://localhost:3000',
         },
 
-        // Performance optimizations
+        // Performance optimizations (Vitest 4 - moved from poolOptions)
         pool: 'threads',
-        poolOptions: {
-            threads: {
-                singleThread: false,
-                isolate: true,
-            },
-        },
+        isolate: true,
 
         // Coverage configuration
         coverage: {
