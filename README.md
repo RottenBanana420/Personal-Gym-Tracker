@@ -6,11 +6,11 @@ A full-stack gym tracking application built with modern technologies and best pr
 
 - ✅ **Backend API**: Core Hono API foundation complete with essential middleware
 - ✅ **Database Schema**: Complete with 10 normalized tables, RLS policies, and triggers
-- ✅ **Backend Tests**: 78 passing tests with 84%+ coverage (security, auth, logging, error handling)
+- ✅ **Authentication System**: Complete JWT-based auth with 5 endpoints (signup, login, logout, me, refresh)
+- ✅ **Backend Tests**: 102 passing tests with 100% pass rate
 - ✅ **Frontend Tests**: 5 passing tests with 100% coverage
 - ✅ **Test Infrastructure**: Vitest 4, zero warnings, comprehensive error handling
 - ✅ **Frontend**: Configured with React + Vite + TailwindCSS v4
-- ✅ **Authentication**: JWT-based auth via Supabase integration
 - 🚧 **API Integration**: In progress
 - 🚧 **UI Components**: In progress
 
@@ -21,6 +21,8 @@ A full-stack gym tracking application built with modern technologies and best pr
 - **Runtime**: Bun v1.3+ (fast JavaScript runtime)
 - **Framework**: Hono (ultrafast web framework)
 - **Database**: Supabase (PostgreSQL with Row Level Security)
+- **Authentication**: Supabase Auth with JWT tokens
+- **Validation**: Custom Zod-based validation middleware
 - **Testing**: Vitest (fast, parallel test execution)
 - **Language**: TypeScript (strict mode)
 
@@ -80,37 +82,208 @@ Frontend will run on `http://localhost:5173`
 
 ## Recent Improvements
 
+### Authentication System Implementation (January 2026)
+
+- ✅ **Complete Authentication Endpoints**: Implemented 5 production-ready endpoints
+  - `POST /api/auth/signup` - User registration with email auto-confirmation
+  - `POST /api/auth/login` - User authentication with session tokens
+  - `POST /api/auth/logout` - Session invalidation (idempotent)
+  - `GET /api/auth/me` - Current user profile retrieval
+  - `POST /api/auth/refresh` - Token refresh with rotation
+- ✅ **Custom Validation Middleware**: Built custom Zod validator for better error messages
+  - User-friendly error formatting (e.g., "email: Invalid email format")
+  - Automatic camelCase to space-separated field name conversion
+  - Email preprocessing (trim and lowercase before validation)
+- ✅ **Password Security**: NIST 2024 compliant password validation
+  - 8-64 character length requirement (prioritizing length over complexity)
+  - Password strength validation utilities
+- ✅ **Comprehensive Test Coverage**: 24 authentication tests covering all scenarios
+  - Valid/invalid credentials
+  - Missing fields and validation errors
+  - Email sanitization (trim/lowercase)
+  - Special characters in passwords
+  - Token expiration and refresh
+  - Protected endpoint access control
+- ✅ **100% Test Pass Rate**: All 102 backend tests passing
+
 ### Core API Foundation Implementation (January 2026)
 
-- ✅ **Authentication Middleware**: Implemented JWT-based authentication using Supabase Auth.
-  - Supports both required and optional authentication modes.
-  - Standardized user context available in all route handlers.
-- ✅ **Structured Logging**: Enhanced logging with unique Request IDs, ISO timestamps, and user-agent tracking.
-  - Color-coded output for development.
-  - Sensitive data protection (sanitizes passwords and tokens from logs).
-- ✅ **Enhanced Error Handling**: Centralized error middleware with standardized JSON responses.
-  - Consistent format: `{ success: false, error: "message" }`.
-  - Custom API error classes (ValidationError, UnauthorizedError, etc.).
-- ✅ **Expanded Test Coverage**: Increased from 51 to 78 backend tests.
-  - Added 9 authentication middleware tests.
-  - Added 9 structured logging middleware tests.
-  - Updated error handling tests to 17 scenarios.
-- ✅ **Production-Ready Foundation**: All middleware built following TDD principles with 100% logic coverage.
+- ✅ **Authentication Middleware**: Implemented JWT-based authentication using Supabase Auth
+  - Supports both required and optional authentication modes
+  - Standardized user context available in all route handlers
+- ✅ **Structured Logging**: Enhanced logging with unique Request IDs, ISO timestamps, and user-agent tracking
+  - Color-coded output for development
+  - Sensitive data protection (sanitizes passwords and tokens from logs)
+- ✅ **Enhanced Error Handling**: Centralized error middleware with standardized JSON responses
+  - Consistent format: `{ success: false, error: "message" }`
+  - Custom API error classes (ValidationError, UnauthorizedError, ConflictError, etc.)
+  - Proper Zod validation error formatting
+- ✅ **Production-Ready Foundation**: All middleware built following TDD principles with 100% logic coverage
 
 ### Test Infrastructure Upgrade (January 2026)
 
 - ✅ **Vitest 4 Migration**: Updated to latest Vitest with modern pool configuration
-- ✅ **Expanded Test Coverage**: Increased from 26 to 51 backend tests (+96% growth)
-  - Added 8 comprehensive error middleware tests
-  - Added 13 environment validation tests
-  - Maintained 26 security/RLS tests
-- ✅ **Coverage Improvements**:
-  - Backend: 71% → 90%+ coverage across all metrics
-  - Frontend: Maintained 100% coverage
+- ✅ **Expanded Test Coverage**: Grew from 26 to 102 backend tests
+  - 24 authentication endpoint tests
+  - 26 database security/RLS tests
+  - 17 error handling tests
+  - 13 environment validation tests
+  - 9 authentication middleware tests
+  - 9 structured logging tests
+  - 4 health check tests
 - ✅ **Zero Warnings**: Eliminated all test warnings
   - Fixed Recharts dimension warnings with enhanced ResizeObserver mock
   - Suppressed expected JSDOM-related warnings
-- ✅ **Production-Ready**: All tests follow TDD principles with immutable test suites
+- ✅ **100% Pass Rate**: All tests passing with comprehensive coverage
+
+## API Endpoints
+
+### Authentication
+
+All authentication endpoints return standardized JSON responses:
+
+```typescript
+// Success response
+{
+  "success": true,
+  "data": { ... }
+}
+
+// Error response
+{
+  "success": false,
+  "error": "User-friendly error message"
+}
+```
+
+#### POST /api/auth/signup
+
+Register a new user account.
+
+**Request:**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "created_at": "2026-01-22T..."
+    },
+    "session": {
+      "access_token": "jwt-token",
+      "refresh_token": "refresh-token",
+      "expires_at": 1234567890
+    }
+  }
+}
+```
+
+#### POST /api/auth/login
+
+Authenticate a user and return session tokens.
+
+**Request:**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123"
+}
+```
+
+**Response (200):** Same as signup
+
+#### GET /api/auth/me
+
+Get current user profile (requires authentication).
+
+**Headers:**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "authenticated"
+  }
+}
+```
+
+#### POST /api/auth/logout
+
+Invalidate current session (requires authentication).
+
+**Headers:**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Successfully logged out"
+  }
+}
+```
+
+#### POST /api/auth/refresh
+
+Refresh access token using refresh token.
+
+**Request:**
+
+```json
+{
+  "refreshToken": "refresh-token"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "session": {
+      "access_token": "new-jwt-token",
+      "refresh_token": "new-refresh-token",
+      "expires_at": 1234567890
+    }
+  }
+}
+```
+
+### Health Check
+
+#### GET /
+
+API information and version.
+
+#### GET /health
+
+Health check endpoint with uptime and timestamp.
 
 ## Database Schema
 
@@ -136,6 +309,7 @@ The application uses a fully normalized PostgreSQL schema with comprehensive sec
 - ✅ **40+ security policies** preventing unauthorized access
 - ✅ **JWT Authentication** verified by Supabase Auth
 - ✅ **26 security tests** verifying RLS implementation
+- ✅ **24 authentication tests** for endpoint security
 - ✅ **17 error handling tests** for middleware robustness
 - ✅ **13 environment validation tests** for configuration security
 - ✅ **9 authentication middleware tests** for JWT security
@@ -205,13 +379,20 @@ Personal-Gym-Tracker/
 ├── backend/                 # Bun + Hono API
 │   ├── src/
 │   │   ├── config/         # Configuration files
-│   │   │   └── env.ts      # Environment validation (Zod)
+│   │   │   ├── env.ts      # Environment validation (Zod)
+│   │   │   └── supabase.ts # Supabase client configuration
 │   │   ├── routes/         # API routes
+│   │   │   ├── auth.ts     # Authentication endpoints
 │   │   │   └── health.ts   # Health check endpoint
 │   │   ├── middleware/     # Custom middleware
 │   │   │   ├── auth.ts     # JWT Authentication
 │   │   │   ├── error.ts    # Error handling
-│   │   │   └── logger.ts   # Request logging
+│   │   │   ├── logger.ts   # Request logging
+│   │   │   └── validate.ts # Custom Zod validation
+│   │   ├── validators/     # Validation schemas
+│   │   │   └── auth.ts     # Authentication schemas
+│   │   ├── utils/          # Utility functions
+│   │   │   └── password.ts # Password validation
 │   │   ├── index.ts        # Entry point
 │   │   └── types.ts        # API type definitions
 │   ├── migrations/         # Database migrations
@@ -228,7 +409,10 @@ Personal-Gym-Tracker/
 │   │   │   └── security.test.ts # RLS policy tests
 │   │   ├── middleware/     # Middleware tests
 │   │   │   ├── auth.test.ts # Authentication tests
-│   │   │   └── error.test.ts # Error handling tests
+│   │   │   ├── error.test.ts # Error handling tests
+│   │   │   └── logger.test.ts # Logging tests
+│   │   ├── routes/         # Route tests
+│   │   │   └── auth.test.ts # Authentication endpoint tests
 │   │   └── health.test.ts  # API health tests
 │   └── package.json
 ├── frontend/               # React + Vite app
@@ -261,12 +445,13 @@ This project follows **Test-Driven Development (TDD)** principles:
 
 ### Current Test Coverage
 
-**Backend** (78 tests):
+**Backend** (102 tests):
 
-- Lines: 83.69% ✅
-- Functions: 94.11% ✅
-- Statements: 80.41% ✅
-- Branches: 68.42% 🚧 (Improving)
+- **100% pass rate** ✅
+- Lines: 85%+ ✅
+- Functions: 95%+ ✅
+- Statements: 82%+ ✅
+- Branches: 70%+ 🚧 (Improving)
 
 **Frontend** (5 tests):
 
