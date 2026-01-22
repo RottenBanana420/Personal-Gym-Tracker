@@ -24,10 +24,11 @@
         "@types/bun": "latest",
         "@typescript-eslint/eslint-plugin": "latest",
         "@typescript-eslint/parser": "latest",
+        "@vitest/coverage-v8": "latest",
+        "dotenv": "^17.2.3",
         "eslint": "latest",
         "prettier": "latest",
         "typescript": "latest",
-        "vitest": "latest",
-        "@vitest/coverage-v8": "latest"
+        "vitest": "latest"
     }
 }

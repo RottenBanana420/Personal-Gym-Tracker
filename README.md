@@ -2,13 +2,22 @@
 
 A full-stack gym tracking application built with modern technologies and best practices.
 
+## 🎯 Project Status
+
+- ✅ **Backend API**: Configured with Bun + Hono
+- ✅ **Database Schema**: Complete with 10 normalized tables, RLS policies, and triggers
+- ✅ **Security Tests**: 26 passing tests verifying complete data isolation
+- ✅ **Frontend**: Configured with React + Vite + TailwindCSS v4
+- 🚧 **API Integration**: In progress
+- 🚧 **UI Components**: In progress
+
 ## Tech Stack
 
 ### Backend
 
 - **Runtime**: Bun v1.3+ (fast JavaScript runtime)
 - **Framework**: Hono (ultrafast web framework)
-- **Database**: Supabase (PostgreSQL)
+- **Database**: Supabase (PostgreSQL with Row Level Security)
 - **Testing**: Vitest (fast, parallel test execution)
 - **Language**: TypeScript (strict mode)
 
@@ -66,6 +75,52 @@ bun run dev
 
 Frontend will run on `http://localhost:5173`
 
+## Database Schema
+
+The application uses a fully normalized PostgreSQL schema with comprehensive security and performance optimizations.
+
+### Core Tables
+
+- **`profiles`** - User profile information (extends Supabase Auth)
+- **`user_metrics`** - Historical biometric data (weight, body fat, muscle mass)
+- **`exercises`** - Master exercise library (system + user-created)
+- **`workouts`** - Individual workout sessions
+- **`workout_exercises`** - Links exercises to workouts
+- **`sets`** - Detailed set data (reps, weight, duration)
+- **`personal_records`** - User personal bests (auto-tracked)
+- **`workout_routines`** - Pre-defined workout templates
+- **`routine_exercises`** - Links exercises to routines
+- **`goals`** - User fitness goals and progress tracking
+
+### Security Features
+
+- ✅ **Row Level Security (RLS)** enabled on all tables
+- ✅ **Complete data isolation** between users
+- ✅ **40+ security policies** preventing unauthorized access
+- ✅ **26 security tests** verifying RLS implementation
+- ✅ **Automatic profile creation** on user signup
+
+### Performance Optimizations
+
+- ✅ **40+ strategic indexes** (composite, partial, GIN)
+- ✅ **Optimized for common query patterns**
+- ✅ **Expected query times**: <50-100ms
+- ✅ **Automatic triggers** for timestamps and personal records
+
+### Migrations
+
+Database migrations are located in `backend/migrations/`:
+
+```bash
+001_core_schema.sql      # All 10 tables with constraints
+002_indexes.sql          # Performance indexes
+003_rls_policies.sql     # Row Level Security policies
+004_triggers.sql         # Automatic triggers
+005_seed_data.sql        # 32 system exercises + 3 routines
+```
+
+All migrations have been applied to the production Supabase database.
+
 ## Development Workflow
 
 ### Running Tests
@@ -112,7 +167,16 @@ Personal-Gym-Tracker/
 │   │   ├── routes/         # API routes
 │   │   ├── middleware/     # Custom middleware
 │   │   └── index.ts        # Entry point
-│   ├── tests/              # Test files
+│   ├── migrations/         # Database migrations
+│   │   ├── 001_core_schema.sql
+│   │   ├── 002_indexes.sql
+│   │   ├── 003_rls_policies.sql
+│   │   ├── 004_triggers.sql
+│   │   ├── 005_seed_data.sql
+│   │   └── README.md
+│   ├── tests/
+│   │   ├── database/       # Database security tests
+│   │   └── health.test.ts  # API health tests
 │   └── package.json
 ├── frontend/               # React + Vite app
 │   ├── src/
@@ -123,6 +187,10 @@ Personal-Gym-Tracker/
 │   ├── tests/              # Test files
 │   └── package.json
 └── docs/                   # Documentation
+    ├── SETUP.md
+    ├── ENV_SETUP.md
+    ├── TESTING.md
+    └── ARCHITECTURE.md
 ```
 
 ## Testing Philosophy
@@ -152,6 +220,7 @@ This ensures no interference between environments and easy replication.
 Comprehensive guides are available in the `docs/` directory:
 
 - **[Setup Guide](./docs/SETUP.md)** - Complete setup instructions with troubleshooting
+- **[Database Schema](./docs/DATABASE.md)** - Complete database schema documentation with security and performance details
 - **[Environment Setup](./docs/ENV_SETUP.md)** - Detailed environment variable configuration
 - **[Testing Guide](./docs/TESTING.md)** - Testing strategies, TDD workflow, and best practices
 - **[Architecture](./docs/ARCHITECTURE.md)** - Project architecture and design decisions

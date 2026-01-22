@@ -1,27 +1,18 @@
 import { defineConfig } from 'vitest/config';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load .env.test file for test environment
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 export default defineConfig({
     test: {
         // Test environment
         globals: true,
         environment: 'node',
-        env: {
-            PORT: '3000',
-            NODE_ENV: 'test',
-            SUPABASE_URL: 'https://test.supabase.co',
-            SUPABASE_ANON_KEY: 'test-anon-key',
-            SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
-            ALLOWED_ORIGINS: 'http://localhost:5173',
-        },
 
         // Performance optimizations
         pool: 'threads',
-        poolOptions: {
-            threads: {
-                singleThread: false,
-                isolate: true,
-            },
-        },
 
         // Coverage configuration
         coverage: {
@@ -47,9 +38,9 @@ export default defineConfig({
         mockReset: true,
         restoreMocks: true,
 
-        // Timeouts
-        testTimeout: 10000,
-        hookTimeout: 10000,
+        // Timeouts (increased for database operations)
+        testTimeout: 30000,
+        hookTimeout: 30000,
 
         // Watch mode
         watch: false,
