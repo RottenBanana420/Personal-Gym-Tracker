@@ -7,7 +7,8 @@ A full-stack gym tracking application built with modern technologies and best pr
 - ✅ **Backend API**: Core Hono API foundation complete with essential middleware
 - ✅ **Database Schema**: Complete with 10 normalized tables, RLS policies, and triggers
 - ✅ **Authentication System**: Complete JWT-based auth with 5 endpoints (signup, login, logout, me, refresh)
-- ✅ **Backend Tests**: 102 passing tests with 100% pass rate
+- ✅ **Exercise Management**: Complete CRUD endpoints with filtering, sorting, and authorization
+- ✅ **Backend Tests**: 129 passing tests with 100% pass rate
 - ✅ **Frontend Tests**: 5 passing tests with 100% coverage
 - ✅ **Test Infrastructure**: Vitest 4, zero warnings, comprehensive error handling
 - ✅ **Frontend**: Configured with React + Vite + TailwindCSS v4
@@ -82,6 +83,33 @@ Frontend will run on `http://localhost:5173`
 
 ## Recent Improvements
 
+### Exercise Management System Implementation (January 2026)
+
+- ✅ **Complete Exercise CRUD Endpoints**: Implemented 4 production-ready endpoints
+  - `GET /api/exercises` - Retrieve user's exercises with filtering and sorting
+  - `POST /api/exercises` - Create new exercises with validation
+  - `PUT /api/exercises/:id` - Update existing exercises (partial updates supported)
+  - `DELETE /api/exercises/:id` - Delete exercises with cascade protection
+- ✅ **Advanced Filtering & Sorting**: Query exercises by muscle group and equipment type
+  - Sort by name (ascending/descending) or creation date
+  - Efficient database queries with proper indexing
+- ✅ **Comprehensive Authorization**: Multi-layer security implementation
+  - Row Level Security (RLS) enforcement at database level
+  - Service role checks to distinguish 403 (Forbidden) vs 404 (Not Found)
+  - Authenticated Supabase client per request with JWT context
+- ✅ **Input Validation**: Zod schemas for all exercise operations
+  - Muscle groups: Chest, Back, Legs, Shoulders, Arms, Core, Full Body
+  - Equipment types: Barbell, Dumbbell, Machine, Bodyweight, Cable, Resistance Band, Other
+  - Name length constraints (1-100 characters)
+  - Optional description (max 500 characters)
+- ✅ **Complete Test Coverage**: 27 exercise endpoint tests covering all scenarios
+  - All CRUD operations with success and failure cases
+  - Authentication and authorization checks
+  - Input validation (missing fields, invalid values, length constraints)
+  - Data isolation between users
+  - Filtering and sorting functionality
+- ✅ **100% Test Pass Rate**: All 129 backend tests passing (102 existing + 27 new)
+
 ### Authentication System Implementation (January 2026)
 
 - ✅ **Complete Authentication Endpoints**: Implemented 5 production-ready endpoints
@@ -123,7 +151,8 @@ Frontend will run on `http://localhost:5173`
 ### Test Infrastructure Upgrade (January 2026)
 
 - ✅ **Vitest 4 Migration**: Updated to latest Vitest with modern pool configuration
-- ✅ **Expanded Test Coverage**: Grew from 26 to 102 backend tests
+- ✅ **Expanded Test Coverage**: Grew from 26 to 129 backend tests
+  - 27 exercise endpoint tests
   - 24 authentication endpoint tests
   - 26 database security/RLS tests
   - 17 error handling tests
@@ -210,7 +239,7 @@ Get current user profile (requires authentication).
 
 **Headers:**
 
-```
+```http
 Authorization: Bearer <access_token>
 ```
 
@@ -233,7 +262,7 @@ Invalidate current session (requires authentication).
 
 **Headers:**
 
-```
+```http
 Authorization: Bearer <access_token>
 ```
 
@@ -275,6 +304,143 @@ Refresh access token using refresh token.
 }
 ```
 
+### Exercise Management
+
+All exercise endpoints require authentication and return standardized JSON responses.
+
+#### GET /api/exercises
+
+Retrieve all exercises for the authenticated user with optional filtering and sorting.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+
+- `muscle_group` (optional): Filter by muscle group (Chest, Back, Legs, Shoulders, Arms, Core, Full Body)
+- `equipment_type` (optional): Filter by equipment type (Barbell, Dumbbell, Machine, Bodyweight, Cable, Resistance Band, Other)
+- `sort` (optional): Sort order - `name_asc`, `name_desc`, `created_asc`, `created_desc`
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "name": "Bench Press",
+      "description": "Classic chest exercise",
+      "category": "strength",
+      "muscle_group": "Chest",
+      "equipment_type": "Barbell",
+      "created_at": "2026-01-22T...",
+      "updated_at": "2026-01-22T..."
+    }
+  ]
+}
+```
+
+#### POST /api/exercises
+
+Create a new exercise for the authenticated user.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request:**
+
+```json
+{
+  "name": "Bench Press",
+  "muscle_group": "Chest",
+  "equipment_type": "Barbell",
+  "description": "Classic chest exercise",
+  "category": "strength"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "user_id": "uuid",
+    "name": "Bench Press",
+    "description": "Classic chest exercise",
+    "category": "strength",
+    "muscle_group": "Chest",
+    "equipment_type": "Barbell",
+    "created_at": "2026-01-22T...",
+    "updated_at": "2026-01-22T..."
+  }
+}
+```
+
+#### PUT /api/exercises/:id
+
+Update an existing exercise. Supports partial updates (only provided fields are updated).
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request (all fields optional):**
+
+```json
+{
+  "name": "Updated Exercise Name",
+  "muscle_group": "Shoulders",
+  "equipment_type": "Dumbbell",
+  "description": "Updated description"
+}
+```
+
+**Response (200):** Same format as POST response
+
+**Error Responses:**
+
+- `403 Forbidden` - Attempting to update another user's exercise
+- `404 Not Found` - Exercise does not exist
+
+#### DELETE /api/exercises/:id
+
+Delete an exercise. Exercise must belong to the authenticated user.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Exercise deleted successfully"
+  }
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - Attempting to delete another user's exercise
+- `404 Not Found` - Exercise does not exist
+- `400 Bad Request` - Exercise is being used in workouts or routines (foreign key constraint)
+
 ### Health Check
 
 #### GET /
@@ -308,6 +474,7 @@ The application uses a fully normalized PostgreSQL schema with comprehensive sec
 - ✅ **Complete data isolation** between users
 - ✅ **40+ security policies** preventing unauthorized access
 - ✅ **JWT Authentication** verified by Supabase Auth
+- ✅ **27 exercise endpoint tests** for CRUD authorization
 - ✅ **26 security tests** verifying RLS implementation
 - ✅ **24 authentication tests** for endpoint security
 - ✅ **17 error handling tests** for middleware robustness
@@ -374,7 +541,7 @@ cd frontend && bun run type-check
 
 ## Project Structure
 
-```
+```plaintext
 Personal-Gym-Tracker/
 ├── backend/                 # Bun + Hono API
 │   ├── src/
@@ -383,6 +550,7 @@ Personal-Gym-Tracker/
 │   │   │   └── supabase.ts # Supabase client configuration
 │   │   ├── routes/         # API routes
 │   │   │   ├── auth.ts     # Authentication endpoints
+│   │   │   ├── exercises.ts # Exercise CRUD endpoints
 │   │   │   └── health.ts   # Health check endpoint
 │   │   ├── middleware/     # Custom middleware
 │   │   │   ├── auth.ts     # JWT Authentication
@@ -390,7 +558,8 @@ Personal-Gym-Tracker/
 │   │   │   ├── logger.ts   # Request logging
 │   │   │   └── validate.ts # Custom Zod validation
 │   │   ├── validators/     # Validation schemas
-│   │   │   └── auth.ts     # Authentication schemas
+│   │   │   ├── auth.ts     # Authentication schemas
+│   │   │   └── exercise.ts # Exercise validation schemas
 │   │   ├── utils/          # Utility functions
 │   │   │   └── password.ts # Password validation
 │   │   ├── index.ts        # Entry point
@@ -412,7 +581,8 @@ Personal-Gym-Tracker/
 │   │   │   ├── error.test.ts # Error handling tests
 │   │   │   └── logger.test.ts # Logging tests
 │   │   ├── routes/         # Route tests
-│   │   │   └── auth.test.ts # Authentication endpoint tests
+│   │   │   ├── auth.test.ts # Authentication endpoint tests
+│   │   │   └── exercises.test.ts # Exercise CRUD endpoint tests
 │   │   └── health.test.ts  # API health tests
 │   └── package.json
 ├── frontend/               # React + Vite app
@@ -445,7 +615,7 @@ This project follows **Test-Driven Development (TDD)** principles:
 
 ### Current Test Coverage
 
-**Backend** (102 tests):
+**Backend** (129 tests):
 
 - **100% pass rate** ✅
 - Lines: 85%+ ✅

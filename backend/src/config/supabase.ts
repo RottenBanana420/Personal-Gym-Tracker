@@ -18,3 +18,22 @@ export const supabaseAdmin = createClient(
         },
     }
 );
+
+/**
+ * Create a Supabase client with user authentication context
+ * This is required for RLS policies to work correctly
+ * @param accessToken - JWT access token from authenticated user
+ */
+export function createAuthenticatedClient(accessToken: string) {
+    return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+        global: {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        },
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    });
+}

@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/error';
 import { env } from './config/env';
 import health from './routes/health';
 import auth from './routes/auth';
+import exercises from './routes/exercises';
 
 const app = new Hono();
 
@@ -18,6 +19,7 @@ app.use('*', logger);
 // Routes
 app.route('/health', health);
 app.route('/api/auth', auth);
+app.route('/api/exercises', exercises);
 
 // Root endpoint
 app.get('/', (c) => {
@@ -27,6 +29,7 @@ app.get('/', (c) => {
         endpoints: {
             health: '/health',
             auth: '/api/auth',
+            exercises: '/api/exercises',
         },
     });
 });
