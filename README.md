@@ -8,7 +8,8 @@ A full-stack gym tracking application built with modern technologies and best pr
 - ✅ **Database Schema**: Complete with 10 normalized tables, RLS policies, and triggers
 - ✅ **Authentication System**: Complete JWT-based auth with 5 endpoints (signup, login, logout, me, refresh)
 - ✅ **Exercise Management**: Complete CRUD endpoints with filtering, sorting, and authorization
-- ✅ **Backend Tests**: 129 passing tests with 100% pass rate
+- ✅ **Workout Management**: Complete CRUD endpoints with nested sets, transactions, and filtering
+- ✅ **Backend Tests**: 159 passing tests with 100% pass rate
 - ✅ **Frontend Tests**: 5 passing tests with 100% coverage
 - ✅ **Test Infrastructure**: Vitest 4, zero warnings, comprehensive error handling
 - ✅ **Frontend**: Configured with React + Vite + TailwindCSS v4
@@ -26,6 +27,7 @@ A full-stack gym tracking application built with modern technologies and best pr
 - **Validation**: Custom Zod-based validation middleware
 - **Testing**: Vitest (fast, parallel test execution)
 - **Language**: TypeScript (strict mode)
+- **Endpoints**: 13 production-ready API endpoints
 
 ### Frontend
 
@@ -440,6 +442,190 @@ Authorization: Bearer <access_token>
 - `403 Forbidden` - Attempting to delete another user's exercise
 - `404 Not Found` - Exercise does not exist
 - `400 Bad Request` - Exercise is being used in workouts or routines (foreign key constraint)
+
+### Workout Management
+
+All workout endpoints require authentication and return standardized JSON responses.
+
+#### GET /api/workouts
+
+Retrieve all workouts for the authenticated user with optional filtering and pagination.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+
+- `start_date` (optional): Filter workouts after this date (ISO 8601 format)
+- `end_date` (optional): Filter workouts before this date (ISO 8601 format)
+- `limit` (optional): Number of results to return (default: 50, max: 100)
+- `offset` (optional): Number of results to skip for pagination (default: 0)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "name": "Workout 01/22/2026",
+      "notes": "Great workout!",
+      "started_at": "2026-01-22T10:00:00Z",
+      "completed_at": "2026-01-22T11:00:00Z",
+      "duration_minutes": 60,
+      "total_sets": 12,
+      "exercises_count": 3,
+      "created_at": "2026-01-22T...",
+      "updated_at": "2026-01-22T..."
+    }
+  ]
+}
+```
+
+#### POST /api/workouts
+
+Create a new workout with multiple sets. Uses database transactions to ensure atomicity.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request:**
+
+```json
+{
+  "workout_date": "2026-01-22T10:00:00Z",
+  "duration_minutes": 60,
+  "notes": "Great workout!",
+  "sets": [
+    {
+      "exercise_id": "uuid",
+      "set_number": 1,
+      "weight_kg": 100,
+      "reps": 10
+    },
+    {
+      "exercise_id": "uuid",
+      "set_number": 2,
+      "weight_kg": 100,
+      "reps": 8
+    }
+  ]
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "user_id": "uuid",
+    "name": "Workout 01/22/2026",
+    "notes": "Great workout!",
+    "started_at": "2026-01-22T10:00:00Z",
+    "completed_at": "2026-01-22T10:00:00Z",
+    "duration_minutes": 60,
+    "created_at": "2026-01-22T...",
+    "updated_at": "2026-01-22T...",
+    "sets": [
+      {
+        "id": "uuid",
+        "exercise_id": "uuid",
+        "set_number": 1,
+        "weight_kg": 100,
+        "reps": 10,
+        "created_at": "2026-01-22T..."
+      }
+    ]
+  }
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid data (missing fields, invalid format, empty sets array)
+- `403 Forbidden` - Attempting to use another user's exercise
+- `401 Unauthorized` - Missing or invalid authentication token
+
+#### GET /api/workouts/:id
+
+Get complete workout details including all sets.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "user_id": "uuid",
+    "name": "Workout 01/22/2026",
+    "notes": "Great workout!",
+    "started_at": "2026-01-22T10:00:00Z",
+    "completed_at": "2026-01-22T11:00:00Z",
+    "duration_minutes": 60,
+    "created_at": "2026-01-22T...",
+    "updated_at": "2026-01-22T...",
+    "sets": [
+      {
+        "id": "uuid",
+        "exercise_id": "uuid",
+        "workout_exercise_id": "uuid",
+        "set_number": 1,
+        "weight_kg": 100,
+        "reps": 10,
+        "created_at": "2026-01-22T..."
+      }
+    ]
+  }
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - Attempting to view another user's workout
+- `404 Not Found` - Workout does not exist
+
+#### DELETE /api/workouts/:id
+
+Delete a workout. Cascade deletion automatically removes all associated sets.
+
+**Headers:**
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Workout deleted successfully"
+  }
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - Attempting to delete another user's workout
+- `404 Not Found` - Workout does not exist
 
 ### Health Check
 

@@ -6,6 +6,7 @@ import { env } from './config/env';
 import health from './routes/health';
 import auth from './routes/auth';
 import exercises from './routes/exercises';
+import workouts from './routes/workouts';
 
 const app = new Hono();
 
@@ -20,6 +21,7 @@ app.use('*', logger);
 app.route('/health', health);
 app.route('/api/auth', auth);
 app.route('/api/exercises', exercises);
+app.route('/api/workouts', workouts);
 
 // Root endpoint
 app.get('/', (c) => {
@@ -30,6 +32,7 @@ app.get('/', (c) => {
             health: '/health',
             auth: '/api/auth',
             exercises: '/api/exercises',
+            workouts: '/api/workouts',
         },
     });
 });
