@@ -7,6 +7,7 @@ import health from './routes/health';
 import auth from './routes/auth';
 import exercises from './routes/exercises';
 import workouts from './routes/workouts';
+import stats from './routes/stats';
 
 const app = new Hono();
 
@@ -22,6 +23,7 @@ app.route('/health', health);
 app.route('/api/auth', auth);
 app.route('/api/exercises', exercises);
 app.route('/api/workouts', workouts);
+app.route('/api/stats', stats);
 
 // Root endpoint
 app.get('/', (c) => {
@@ -33,6 +35,7 @@ app.get('/', (c) => {
             auth: '/api/auth',
             exercises: '/api/exercises',
             workouts: '/api/workouts',
+            stats: '/api/stats',
         },
     });
 });

@@ -4,7 +4,7 @@ This document provides an overview of the project architecture, design decisions
 
 ## Project Structure
 
-```
+```plaintext
 Personal-Gym-Tracker/
 ├── backend/                    # Bun + Hono API Server
 │   ├── src/
@@ -14,17 +14,44 @@ Personal-Gym-Tracker/
 │   │   ├── middleware/        # Custom middleware
 │   │   │   ├── auth.ts        # JWT Authentication
 │   │   │   ├── logger.ts      # Structured Request logging
-│   │   │   └── error.ts       # Centralized Error handling
+│   │   │   ├── error.ts       # Centralized Error handling
+│   │   │   └── validate.ts    # Custom Zod validation
 │   │   ├── routes/            # API routes
+│   │   │   ├── auth.ts        # Authentication endpoints
+│   │   │   ├── exercises.ts   # Exercise CRUD endpoints
+│   │   │   ├── workouts.ts    # Workout CRUD endpoints
+│   │   │   ├── stats.ts       # Statistics endpoints
 │   │   │   └── health.ts      # Health check endpoint
+│   │   ├── validators/        # Validation schemas
+│   │   │   ├── auth.ts        # Authentication schemas
+│   │   │   ├── exercise.ts    # Exercise validation schemas
+│   │   │   ├── workout.ts     # Workout validation schemas
+│   │   │   └── stats.ts       # Statistics validation schemas
+│   │   ├── utils/             # Utility functions
+│   │   │   └── password.ts    # Password validation
 │   │   ├── index.ts           # Application entry point
 │   │   └── types.ts           # API type definitions
+│   ├── migrations/            # Database migrations
+│   │   ├── 001_core_schema.sql
+│   │   ├── 002_indexes.sql
+│   │   ├── 003_rls_policies.sql
+│   │   ├── 004_triggers.sql
+│   │   └── 005_seed_data.sql
 │   ├── tests/                 # Test files
+│   │   ├── config/            # Configuration tests
+│   │   │   └── env.test.ts
+│   │   ├── database/          # Database security tests
+│   │   │   └── security.test.ts
 │   │   ├── middleware/        # Middleware tests
 │   │   │   ├── auth.test.ts
 │   │   │   ├── error.test.ts
 │   │   │   └── logger.test.ts
-│   │   └── health.test.ts     # API tests
+│   │   ├── routes/            # Route tests
+│   │   │   ├── auth.test.ts
+│   │   │   ├── exercises.test.ts
+│   │   │   ├── workouts.test.ts
+│   │   │   └── stats.test.ts
+│   │   └── health.test.ts     # API health tests
 │   ├── package.json           # Dependencies & scripts
 │   ├── tsconfig.json          # TypeScript config (strict)
 │   ├── vitest.config.ts       # Vitest config
@@ -53,8 +80,10 @@ Personal-Gym-Tracker/
 │
 └── docs/                       # Documentation
     ├── SETUP.md               # Setup instructions
+    ├── ENV_SETUP.md           # Environment setup
     ├── TESTING.md             # Testing guide
-    └── ARCHITECTURE.md        # This file
+    ├── ARCHITECTURE.md        # This file
+    └── DATABASE.md            # Database schema
 ```
 
 ## Technology Stack
@@ -245,7 +274,7 @@ cd frontend && bun install
 
 ### Backend Request Flow
 
-```
+```plaintext
 Request → RequestId Gen → Logger → CORS → Auth Middleware → Route Handler → Response
                                                                   ↓
                                                             Error Handler
@@ -253,7 +282,7 @@ Request → RequestId Gen → Logger → CORS → Auth Middleware → Route Hand
 
 ### Frontend Data Flow
 
-```
+```plaintext
 Component → Auth Hook → Custom Hook → Supabase Client → Database
                  ↓
              State Update
@@ -263,7 +292,7 @@ Component → Auth Hook → Custom Hook → Supabase Client → Database
 
 ## Security Best Practices
 
-### Backend
+### Backend Security
 
 1. **JWT Verification**: Always verify tokens via Supabase Auth middleware
 2. **Environment Validation**: Zod schema ensures required vars exist
@@ -271,7 +300,7 @@ Component → Auth Hook → Custom Hook → Supabase Client → Database
 4. **Error Handling**: Standardized responses, no internal leaks.
 5. **Service Role Key**: Only use server-side, never in frontend
 
-### Frontend
+### Frontend Security
 
 1. **Anon Key Only**: Never use service role key in frontend
 2. **Row Level Security**: Rely on Supabase RLS policies
@@ -280,20 +309,20 @@ Component → Auth Hook → Custom Hook → Supabase Client → Database
 
 ## Performance Optimizations
 
-### Backend
+### Backend Performance
 
 1. **Bun Runtime**: 3x faster than Node.js
 2. **Hono Framework**: Minimal overhead
 3. **Connection Pooling**: Supabase handles automatically
 
-### Frontend
+### Frontend Performance
 
 1. **TailwindCSS v4**: 5x faster builds, 100x faster incremental
 2. **Vite**: Fast HMR, optimized builds
 3. **React 19**: Automatic memoization with React Compiler
 4. **Code Splitting**: Vite handles automatically
 
-### Testing
+### Testing Performance
 
 1. **Parallel Execution**: Tests run concurrently
 2. **Watch Mode**: Only re-runs affected tests
@@ -301,14 +330,14 @@ Component → Auth Hook → Custom Hook → Supabase Client → Database
 
 ## Deployment Considerations
 
-### Backend
+### Backend Deployment
 
 - **Platform**: Fly.io, Railway, or any Bun-compatible host
 - **Environment**: Set all `.env` variables
 - **Database**: Supabase handles scaling
 - **Monitoring**: Add logging service (e.g., Sentry)
 
-### Frontend
+### Frontend Deployment
 
 - **Platform**: Vercel, Netlify, or Cloudflare Pages
 - **Build Command**: `bun run build`
