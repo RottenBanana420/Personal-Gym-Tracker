@@ -713,10 +713,17 @@ stats.get('/summary', authMiddleware, async (c) => {
         const avgWorkoutsPerWeek =
             Math.round((workoutsLast12Weeks / 12) * 10) / 10;
 
+        // Get total exercises count
+        const { count: totalExercises } = await supabase
+            .from('exercises')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+
         return c.json({
             success: true,
             data: {
                 total_workouts: totalWorkouts,
+                total_exercises: totalExercises || 0,
                 total_workouts_this_month: workoutsThisMonth,
                 total_workouts_this_week: workoutsThisWeek,
                 total_sets_this_week: totalSetsThisWeek,

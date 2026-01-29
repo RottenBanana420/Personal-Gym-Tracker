@@ -4,18 +4,18 @@ A full-stack gym tracking application built with modern technologies and best pr
 
 ## 🎯 Project Status
 
-- ✅ **Backend API**: Core Hono API foundation complete with essential middleware
+- ✅ **Backend API**: Production-ready Hono API with 17 endpoints
 - ✅ **Database Schema**: Complete with 10 normalized tables, RLS policies, and triggers
 - ✅ **Authentication System**: Complete JWT-based auth with 5 endpoints (signup, login, logout, me, refresh)
 - ✅ **Exercise Management**: Complete CRUD endpoints with filtering, sorting, and authorization
 - ✅ **Workout Management**: Complete CRUD endpoints with nested sets, transactions, and filtering
 - ✅ **Statistics API**: Complete analytics endpoints (PRs, progress, volume, summary)
-- ✅ **Backend Tests**: 186 passing tests with 100% pass rate
-- ✅ **Frontend Tests**: 5 passing tests with 100% coverage
-- ✅ **Test Infrastructure**: Vitest 4, zero warnings, comprehensive error handling
+- ✅ **Test Infrastructure**: Vitest 4 with comprehensive test coverage
 - ✅ **Frontend**: Configured with React + Vite + TailwindCSS v4
 - 🚧 **API Integration**: In progress
 - 🚧 **UI Components**: In progress
+
+> **Note**: Some integration tests may require the backend server to be running. See the [Testing Guide](./docs/TESTING.md) for details.
 
 ## Tech Stack
 
@@ -53,36 +53,62 @@ A full-stack gym tracking application built with modern technologies and best pr
 
 > **📖 For detailed setup instructions**, see the [Setup Guide](./docs/SETUP.md)
 
-### 1. Clone and Install
+### Prerequisites
 
-```bash
-git clone <repository-url>
-cd Personal-Gym-Tracker
-```
+1. **Bun** - Install from [bun.sh](https://bun.sh)
+2. **Supabase Account** - Sign up at [supabase.com](https://supabase.com)
 
-### 2. Backend Setup
+### Setup Steps
 
-```bash
-cd backend
-cp .env.example .env
-# Edit .env with your Supabase credentials (see Setup Guide)
-bun install
-bun run dev
-```
+1. **Clone and Install**
 
-Backend will run on `http://localhost:3000`
+   ```bash
+   git clone <repository-url>
+   cd Personal-Gym-Tracker
+   ```
 
-### 3. Frontend Setup
+2. **Configure Environment Variables**
 
-```bash
-cd frontend
-cp .env.example .env
-# Edit .env with your Supabase credentials (see Setup Guide)
-bun install
-bun run dev
-```
+   Create `.env` files for both backend and frontend:
 
-Frontend will run on `http://localhost:5173`
+   ```bash
+   # Backend
+   cd backend
+   cp .env.example .env
+   # Edit .env with your Supabase credentials
+   
+   # Frontend
+   cd ../frontend
+   cp .env.example .env
+   # Edit .env with your Supabase credentials
+   ```
+
+   See the [Setup Guide](./docs/SETUP.md) for detailed instructions on obtaining Supabase credentials.
+
+3. **Install Dependencies and Run**
+
+   ```bash
+   # Backend (Terminal 1)
+   cd backend
+   bun install
+   bun run dev  # Runs on http://localhost:3000
+   
+   # Frontend (Terminal 2)
+   cd frontend
+   bun install
+   bun run dev  # Runs on http://localhost:5173
+   ```
+
+4. **Verify Setup**
+
+   ```bash
+   # Test backend health
+   curl http://localhost:3000/health
+   
+   # Run tests
+   cd backend && bun run test
+   cd frontend && bun run test
+   ```
 
 ## Recent Improvements
 
@@ -229,614 +255,46 @@ Frontend will run on `http://localhost:5173`
 
 ## API Endpoints
 
-### Authentication
+The application provides **17 production-ready REST API endpoints** across 4 main categories:
 
-All authentication endpoints return standardized JSON responses:
+- **Authentication** (5 endpoints): signup, login, logout, profile, token refresh
+- **Exercise Management** (4 endpoints): CRUD operations with filtering and sorting
+- **Workout Management** (4 endpoints): CRUD with nested sets and transactions
+- **Statistics** (4 endpoints): PRs, progress tracking, volume analysis, summary stats
 
-```typescript
-// Success response
-{
-  "success": true,
-  "data": { ... }
-}
+> **📖 For complete API documentation**, see the [API Reference](./docs/API.md)
 
-// Error response
-{
-  "success": false,
-  "error": "User-friendly error message"
-}
-```
+### Quick API Overview
 
-#### POST /api/auth/signup
-
-Register a new user account.
-
-**Request:**
+All endpoints return standardized JSON responses:
 
 ```json
-{
-  "email": "user@example.com",
-  "password": "SecurePassword123"
-}
+// Success
+{ "success": true, "data": { ... } }
+
+// Error
+{ "success": false, "error": "Error message" }
 ```
 
-**Response (201):**
+**Authentication**: All protected endpoints require a JWT token in the `Authorization: Bearer <token>` header.
 
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "uuid",
-      "email": "user@example.com",
-      "created_at": "2026-01-22T..."
-    },
-    "session": {
-      "access_token": "jwt-token",
-      "refresh_token": "refresh-token",
-      "expires_at": 1234567890
-    }
-  }
-}
+**Example Usage**:
+
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Sign up
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"SecurePass123"}'
+
+# Get exercises (requires auth)
+curl http://localhost:3000/api/exercises \
+  -H "Authorization: Bearer <your-token>"
 ```
 
-#### POST /api/auth/login
-
-Authenticate a user and return session tokens.
-
-**Request:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "SecurePassword123"
-}
-```
-
-**Response (200):** Same as signup
-
-#### GET /api/auth/me
-
-Get current user profile (requires authentication).
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "email": "user@example.com",
-    "role": "authenticated"
-  }
-}
-```
-
-#### POST /api/auth/logout
-
-Invalidate current session (requires authentication).
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Successfully logged out"
-  }
-}
-```
-
-#### POST /api/auth/refresh
-
-Refresh access token using refresh token.
-
-**Request:**
-
-```json
-{
-  "refreshToken": "refresh-token"
-}
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "session": {
-      "access_token": "new-jwt-token",
-      "refresh_token": "new-refresh-token",
-      "expires_at": 1234567890
-    }
-  }
-}
-```
-
-### Exercise Management
-
-All exercise endpoints require authentication and return standardized JSON responses.
-
-#### GET /api/exercises
-
-Retrieve all exercises for the authenticated user with optional filtering and sorting.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Query Parameters:**
-
-- `muscle_group` (optional): Filter by muscle group (Chest, Back, Legs, Shoulders, Arms, Core, Full Body)
-- `equipment_type` (optional): Filter by equipment type (Barbell, Dumbbell, Machine, Bodyweight, Cable, Resistance Band, Other)
-- `sort` (optional): Sort order - `name_asc`, `name_desc`, `created_asc`, `created_desc`
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "user_id": "uuid",
-      "name": "Bench Press",
-      "description": "Classic chest exercise",
-      "category": "strength",
-      "muscle_group": "Chest",
-      "equipment_type": "Barbell",
-      "created_at": "2026-01-22T...",
-      "updated_at": "2026-01-22T..."
-    }
-  ]
-}
-```
-
-#### POST /api/exercises
-
-Create a new exercise for the authenticated user.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Request:**
-
-```json
-{
-  "name": "Bench Press",
-  "muscle_group": "Chest",
-  "equipment_type": "Barbell",
-  "description": "Classic chest exercise",
-  "category": "strength"
-}
-```
-
-**Response (201):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "user_id": "uuid",
-    "name": "Bench Press",
-    "description": "Classic chest exercise",
-    "category": "strength",
-    "muscle_group": "Chest",
-    "equipment_type": "Barbell",
-    "created_at": "2026-01-22T...",
-    "updated_at": "2026-01-22T..."
-  }
-}
-```
-
-#### PUT /api/exercises/:id
-
-Update an existing exercise. Supports partial updates (only provided fields are updated).
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Request (all fields optional):**
-
-```json
-{
-  "name": "Updated Exercise Name",
-  "muscle_group": "Shoulders",
-  "equipment_type": "Dumbbell",
-  "description": "Updated description"
-}
-```
-
-**Response (200):** Same format as POST response
-
-**Error Responses:**
-
-- `403 Forbidden` - Attempting to update another user's exercise
-- `404 Not Found` - Exercise does not exist
-
-#### DELETE /api/exercises/:id
-
-Delete an exercise. Exercise must belong to the authenticated user.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Exercise deleted successfully"
-  }
-}
-```
-
-**Error Responses:**
-
-- `403 Forbidden` - Attempting to delete another user's exercise
-- `404 Not Found` - Exercise does not exist
-- `400 Bad Request` - Exercise is being used in workouts or routines (foreign key constraint)
-
-### Workout Management
-
-All workout endpoints require authentication and return standardized JSON responses.
-
-#### GET /api/workouts
-
-Retrieve all workouts for the authenticated user with optional filtering and pagination.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Query Parameters:**
-
-- `start_date` (optional): Filter workouts after this date (ISO 8601 format)
-- `end_date` (optional): Filter workouts before this date (ISO 8601 format)
-- `limit` (optional): Number of results to return (default: 50, max: 100)
-- `offset` (optional): Number of results to skip for pagination (default: 0)
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "user_id": "uuid",
-      "name": "Workout 01/22/2026",
-      "notes": "Great workout!",
-      "started_at": "2026-01-22T10:00:00Z",
-      "completed_at": "2026-01-22T11:00:00Z",
-      "duration_minutes": 60,
-      "total_sets": 12,
-      "exercises_count": 3,
-      "created_at": "2026-01-22T...",
-      "updated_at": "2026-01-22T..."
-    }
-  ]
-}
-```
-
-#### POST /api/workouts
-
-Create a new workout with multiple sets. Uses database transactions to ensure atomicity.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Request:**
-
-```json
-{
-  "workout_date": "2026-01-22T10:00:00Z",
-  "duration_minutes": 60,
-  "notes": "Great workout!",
-  "sets": [
-    {
-      "exercise_id": "uuid",
-      "set_number": 1,
-      "weight_kg": 100,
-      "reps": 10
-    },
-    {
-      "exercise_id": "uuid",
-      "set_number": 2,
-      "weight_kg": 100,
-      "reps": 8
-    }
-  ]
-}
-```
-
-**Response (201):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "user_id": "uuid",
-    "name": "Workout 01/22/2026",
-    "notes": "Great workout!",
-    "started_at": "2026-01-22T10:00:00Z",
-    "completed_at": "2026-01-22T10:00:00Z",
-    "duration_minutes": 60,
-    "created_at": "2026-01-22T...",
-    "updated_at": "2026-01-22T...",
-    "sets": [
-      {
-        "id": "uuid",
-        "exercise_id": "uuid",
-        "set_number": 1,
-        "weight_kg": 100,
-        "reps": 10,
-        "created_at": "2026-01-22T..."
-      }
-    ]
-  }
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request` - Invalid data (missing fields, invalid format, empty sets array)
-- `403 Forbidden` - Attempting to use another user's exercise
-- `401 Unauthorized` - Missing or invalid authentication token
-
-#### GET /api/workouts/:id
-
-Get complete workout details including all sets.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "user_id": "uuid",
-    "name": "Workout 01/22/2026",
-    "notes": "Great workout!",
-    "started_at": "2026-01-22T10:00:00Z",
-    "completed_at": "2026-01-22T11:00:00Z",
-    "duration_minutes": 60,
-    "created_at": "2026-01-22T...",
-    "updated_at": "2026-01-22T...",
-    "sets": [
-      {
-        "id": "uuid",
-        "exercise_id": "uuid",
-        "workout_exercise_id": "uuid",
-        "set_number": 1,
-        "weight_kg": 100,
-        "reps": 10,
-        "created_at": "2026-01-22T..."
-      }
-    ]
-  }
-}
-```
-
-**Error Responses:**
-
-- `403 Forbidden` - Attempting to view another user's workout
-- `404 Not Found` - Workout does not exist
-
-#### DELETE /api/workouts/:id
-
-Delete a workout. Cascade deletion automatically removes all associated sets.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Workout deleted successfully"
-  }
-}
-```
-
-**Error Responses:**
-
-- `403 Forbidden` - Attempting to delete another user's workout
-- `404 Not Found` - Workout does not exist
-
-### Statistics API
-
-All statistics endpoints require authentication and return standardized JSON responses.
-
-#### GET /api/stats/prs
-
-Get all personal records for the authenticated user.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "exercise_id": "uuid",
-      "exercise_name": "Bench Press",
-      "max_weight": {
-        "value": 120,
-        "reps": 5,
-        "date": "2026-01-08T10:00:00Z"
-      },
-      "max_reps": {
-        "value": 15,
-        "weight": 80,
-        "date": "2026-01-15T10:00:00Z"
-      },
-      "max_volume": {
-        "value": 1200,
-        "date": "2026-01-15T10:00:00Z"
-      }
-    }
-  ]
-}
-```
-
-#### GET /api/stats/progress/:exerciseId
-
-Get historical progress data for a specific exercise.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Query Parameters:**
-
-- `period` (optional): Time period - `4weeks`, `12weeks`, `6months`, `all` (default: `12weeks`)
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "date": "2026-01-01T10:00:00Z",
-      "avg_weight": 100,
-      "max_weight": 100,
-      "total_reps": 18,
-      "total_volume": 1800
-    }
-  ]
-}
-```
-
-**Error Responses:**
-
-- `403 Forbidden` - Exercise does not belong to authenticated user
-- `404 Not Found` - Exercise does not exist
-
-#### GET /api/stats/volume
-
-Get training volume statistics grouped by time period.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Query Parameters:**
-
-- `groupBy` (optional): Grouping - `week`, `month` (default: `week`)
-- `period` (optional): Time period - `4weeks`, `12weeks`, `6months`, `all` (default: `12weeks`)
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "period": "2026-01-13",
-      "total_volume": 1200,
-      "by_muscle_group": [
-        {
-          "muscle_group": "Chest",
-          "volume": 1200
-        }
-      ]
-    }
-  ]
-}
-```
-
-#### GET /api/stats/summary
-
-Get comprehensive summary statistics for the authenticated user.
-
-**Headers:**
-
-```http
-Authorization: Bearer <access_token>
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "total_workouts": 42,
-    "total_workouts_this_month": 12,
-    "total_workouts_this_week": 3,
-    "total_sets_this_week": 45,
-    "total_sets_this_month": 180,
-    "most_trained_muscle_group": "Chest",
-    "current_streak": 5,
-    "avg_workouts_per_week": 3.5
-  }
-}
-```
-
-### Health Check
-
-#### GET /
-
-API information and version.
-
-#### GET /health
-
-Health check endpoint with uptime and timestamp.
+For detailed request/response schemas, validation rules, and error codes, see the [API Reference](./docs/API.md).
 
 ## Database Schema
 
@@ -1009,24 +467,47 @@ This project follows **Test-Driven Development (TDD)** principles:
 - ✅ Parallel test execution for speed
 - ✅ Strict type checking catches errors early
 
-### Current Test Coverage
+### Running Tests
 
-**Backend** (186 tests):
+```bash
+# Backend tests
+cd backend
+bun run test                # Run all tests
+bun run test:watch          # Watch mode
+bun run test:coverage       # With coverage
 
-- **100% pass rate** ✅
-- Lines: 85%+ ✅
-- Functions: 95%+ ✅
-- Statements: 82%+ ✅
-- Branches: 70%+ 🚧 (Improving)
+# Frontend tests
+cd frontend
+bun run test                # Run all tests
+bun run test:watch          # Watch mode
+bun run test:coverage       # With coverage
+```
 
-**Frontend** (5 tests):
+> **⚠️ Important**:
+>
+> - Always use `bun run test` (not `bun test`) to ensure Vitest is used
+> - Some integration tests require the backend server to be running
+> - See [Testing Guide](./docs/TESTING.md) for comprehensive testing documentation
 
-- Lines: 100% ✅
-- Functions: 100% ✅
-- Statements: 100% ✅
-- Branches: 100% ✅
+### Test Suite Overview
 
-All tests pass with **zero warnings** and comprehensive error handling.
+**Backend**: Comprehensive test coverage across multiple categories:
+
+- ✅ **Authentication Tests** (24 tests): Signup, login, logout, token refresh, profile
+- ✅ **Exercise Management Tests** (27 tests): CRUD operations, filtering, authorization
+- ✅ **Workout Management Tests** (30 tests): CRUD with nested sets, transactions
+- ✅ **Statistics Tests** (27 tests): PRs, progress tracking, volume analysis
+- ✅ **Database Security Tests** (26 tests): RLS policies, data isolation
+- ✅ **Middleware Tests** (35 tests): Auth, error handling, logging, validation
+- ✅ **Configuration Tests** (13 tests): Environment validation
+- ✅ **Health Check Tests** (4 tests): API health endpoints
+
+**Frontend**: Component and integration tests
+
+- ✅ **Component Tests** (5 tests): React component rendering and behavior
+- ✅ **Zero Warnings**: Clean test output with proper mocking
+
+All tests pass with comprehensive error handling and proper isolation.
 
 ## Environment Isolation
 
@@ -1044,8 +525,8 @@ This ensures no interference between environments and easy replication.
 Comprehensive guides are available in the `docs/` directory:
 
 - **[Setup Guide](./docs/SETUP.md)** - Complete setup instructions with troubleshooting
+- **[API Reference](./docs/API.md)** - Complete API documentation with examples
 - **[Database Schema](./docs/DATABASE.md)** - Complete database schema documentation with security and performance details
-- **[Environment Setup](./docs/ENV_SETUP.md)** - Detailed environment variable configuration
 - **[Testing Guide](./docs/TESTING.md)** - Testing strategies, TDD workflow, and best practices
 - **[Architecture](./docs/ARCHITECTURE.md)** - Project architecture and design decisions
 

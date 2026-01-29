@@ -471,11 +471,22 @@ describe('Authentication Endpoints', () => {
         });
 
         it('should handle special characters in password', async () => {
-            const specialPassword = 'P@ssw0rd!#$%^&*()';
+            const specialPassword = 'P@ssw0rd!#$%^&*()_+-=[]{}|;:,.<>?';
             const specialUser = {
                 email: 'special-char-test@example.com',
                 password: specialPassword,
             };
+
+            // Cleanup if user already exists from previous test run
+            try {
+                const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+                const existingUser = users?.users.find(u => u.email === specialUser.email);
+                if (existingUser) {
+                    await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
+                }
+            } catch (error) {
+                // Ignore cleanup errors
+            }
 
             // Signup with special characters
             const signupResponse = await apiRequest('/api/auth/signup', {

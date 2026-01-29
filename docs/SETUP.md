@@ -46,23 +46,31 @@ git clone <repository-url>
 cd Personal-Gym-Tracker
 ```
 
-### 2. Backend Environment
+### 2. Configure Environment Variables
+
+Both backend and frontend require environment variables to connect to Supabase.
+
+**Quick Setup:**
 
 ```bash
+# Backend
 cd backend
 cp .env.example .env
+# Edit .env with your Supabase credentials
+
+# Frontend
+cd ../frontend
+cp .env.example .env
+# Edit .env with your Supabase credentials
 ```
 
-Edit `backend/.env` with your values:
+> **📖 For detailed environment setup instructions**, including how to obtain Supabase credentials and troubleshooting, see the [Environment Setup Guide](./ENV_GUIDE.md).
 
-```env
-PORT=3000
-NODE_ENV=development
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-```
+**Required Credentials:**
+
+- Supabase Project URL
+- Supabase Anon Key (for both backend and frontend)
+- Supabase Service Role Key (backend only)
 
 ### 3. Frontend Environment
 

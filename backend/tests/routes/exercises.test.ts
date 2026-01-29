@@ -58,12 +58,29 @@ async function cleanupTestUsers() {
 async function createTestUser(
     userCredentials: typeof testUser1
 ): Promise<string> {
+    // Try to login first (in case user already exists from previous test run)
+    const loginResponse = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(userCredentials),
+    });
+
+    if (loginResponse.status === 200) {
+        const loginData = await loginResponse.json();
+        return loginData.data.session.access_token;
+    }
+
+    // If login fails, try signup
     const signupResponse = await apiRequest('/api/auth/signup', {
         method: 'POST',
         body: JSON.stringify(userCredentials),
     });
 
     const signupData = await signupResponse.json();
+
+    if (!signupData.data || !signupData.data.session) {
+        throw new Error(`Failed to create test user: ${JSON.stringify(signupData)}`);
+    }
+
     return signupData.data.session.access_token;
 }
 
