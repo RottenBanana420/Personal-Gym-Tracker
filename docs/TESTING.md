@@ -67,7 +67,7 @@ When you type `bun run test`, it runs the **npm script** which calls Vitest:
 
 ## Test Structure
 
-### Backend Tests
+### Backend Test Structure
 
 Located in `backend/tests/`
 
@@ -89,7 +89,7 @@ describe('Feature Name', () => {
 });
 ```
 
-### Frontend Tests
+### Frontend Test Structure
 
 Located in `frontend/tests/`
 

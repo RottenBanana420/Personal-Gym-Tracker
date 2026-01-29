@@ -131,7 +131,7 @@ bun run dev
 
 You should see:
 
-```
+```text
 🚀 Server running on http://localhost:3000
 ```
 
@@ -151,7 +151,7 @@ bun run dev
 
 You should see:
 
-```
+```text
   VITE v7.x.x  ready in xxx ms
 
   ➜  Local:   http://localhost:5173/

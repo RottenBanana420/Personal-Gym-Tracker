@@ -53,7 +53,7 @@ A full-stack gym tracking application built with modern technologies and best pr
 
 > **📖 For detailed setup instructions**, see the [Setup Guide](./docs/SETUP.md)
 
-### Prerequisites
+### Environment Prerequisites
 
 1. **Bun** - Install from [bun.sh](https://bun.sh)
 2. **Supabase Account** - Sign up at [supabase.com](https://supabase.com)
@@ -352,7 +352,7 @@ All migrations have been applied to the production Supabase database.
 
 ## Development Workflow
 
-### Running Tests
+### Test Execution Commands
 
 ```bash
 # Backend tests
@@ -467,7 +467,7 @@ This project follows **Test-Driven Development (TDD)** principles:
 - ✅ Parallel test execution for speed
 - ✅ Strict type checking catches errors early
 
-### Running Tests
+### Quick Test Reference
 
 ```bash
 # Backend tests
