@@ -1,78 +1,121 @@
-import { ExampleChart } from './components/ExampleChart';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Header } from './components/navigation/Header';
+import { MobileNav } from './components/navigation/MobileNav';
 
+// Page imports
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { Dashboard } from './pages/Dashboard';
+import { Workouts } from './pages/Workouts';
+import { NewWorkout } from './pages/NewWorkout';
+import { WorkoutDetail } from './pages/WorkoutDetail';
+import { Exercises } from './pages/Exercises';
+import { Stats } from './pages/Stats';
+
+/**
+ * Root component that handles routing
+ */
 function App() {
+    const { user, loading } = useAuth();
+
+    // Show loading state while checking authentication
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            <header className="bg-white shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Personal Gym Tracker
-                    </h1>
-                    <p className="mt-2 text-gray-600">
-                        Track your fitness journey with precision
-                    </p>
-                </div>
-            </header>
+            {/* Show navigation only for authenticated users */}
+            {user && (
+                <>
+                    <Header />
+                    <MobileNav />
+                </>
+            )}
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid gap-6">
-                    <section className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                            Welcome to Your Fitness Dashboard
-                        </h2>
-                        <p className="text-gray-600 mb-4">
-                            This is a modern, isolated development environment built with:
-                        </p>
-                        <ul className="list-disc list-inside space-y-2 text-gray-700">
-                            <li>React 19 - Latest React features</li>
-                            <li>TailwindCSS v4 - CSS-first configuration</li>
-                            <li>Recharts - Beautiful data visualization</li>
-                            <li>Supabase - Backend as a Service</li>
-                            <li>Vitest - Fast, parallel testing</li>
-                            <li>TypeScript - Strict type safety</li>
-                        </ul>
-                    </section>
+            {/* Main content area */}
+            <main className={`${user ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8' : ''}`}>
+                <Routes>
+                    {/* Public Routes */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
 
-                    <section>
-                        <ExampleChart />
-                    </section>
+                    {/* Root redirect */}
+                    <Route
+                        path="/"
+                        element={
+                            user ? (
+                                <Navigate to="/dashboard" replace />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
 
-                    <section className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                            Quick Start
-                        </h2>
-                        <div className="space-y-3 text-gray-700">
-                            <p>
-                                <strong>Backend:</strong> Running on{' '}
-                                <code className="bg-gray-100 px-2 py-1 rounded">
-                                    http://localhost:3000
-                                </code>
-                            </p>
-                            <p>
-                                <strong>Frontend:</strong> Running on{' '}
-                                <code className="bg-gray-100 px-2 py-1 rounded">
-                                    http://localhost:5173
-                                </code>
-                            </p>
-                            <p>
-                                <strong>Tests:</strong> Run{' '}
-                                <code className="bg-gray-100 px-2 py-1 rounded">
-                                    bun test
-                                </code>{' '}
-                                in either directory
-                            </p>
-                        </div>
-                    </section>
-                </div>
+                    {/* Protected Routes */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/workouts"
+                        element={
+                            <ProtectedRoute>
+                                <Workouts />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/workouts/new"
+                        element={
+                            <ProtectedRoute>
+                                <NewWorkout />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/workouts/:id"
+                        element={
+                            <ProtectedRoute>
+                                <WorkoutDetail />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/exercises"
+                        element={
+                            <ProtectedRoute>
+                                <Exercises />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/stats"
+                        element={
+                            <ProtectedRoute>
+                                <Stats />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* 404 - Redirect to home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </main>
-
-            <footer className="mt-12 bg-white border-t border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <p className="text-center text-gray-600">
-                        Built with modern best practices and industry standards
-                    </p>
-                </div>
-            </footer>
         </div>
     );
 }

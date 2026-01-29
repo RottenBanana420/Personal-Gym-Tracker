@@ -8,51 +8,19 @@ This document provides an overview of the project architecture, design decisions
 Personal-Gym-Tracker/
 ├── backend/                    # Bun + Hono API Server
 │   ├── src/
-│   │   ├── config/            # Configuration files
-│   │   │   ├── env.ts         # Environment validation (Zod)
-│   │   │   └── supabase.ts    # Supabase client setup
-│   │   ├── middleware/        # Custom middleware
-│   │   │   ├── auth.ts        # JWT Authentication
-│   │   │   ├── logger.ts      # Structured Request logging
-│   │   │   ├── error.ts       # Centralized Error handling
-│   │   │   └── validate.ts    # Custom Zod validation
-│   │   ├── routes/            # API routes
-│   │   │   ├── auth.ts        # Authentication endpoints
-│   │   │   ├── exercises.ts   # Exercise CRUD endpoints
-│   │   │   ├── workouts.ts    # Workout CRUD endpoints
-│   │   │   ├── stats.ts       # Statistics endpoints
-│   │   │   └── health.ts      # Health check endpoint
-│   │   ├── validators/        # Validation schemas
-│   │   │   ├── auth.ts        # Authentication schemas
-│   │   │   ├── exercise.ts    # Exercise validation schemas
-│   │   │   ├── workout.ts     # Workout validation schemas
-│   │   │   └── stats.ts       # Statistics validation schemas
-│   │   ├── utils/             # Utility functions
-│   │   │   └── password.ts    # Password validation
-│   │   ├── index.ts           # Application entry point
-│   │   └── types.ts           # API type definitions
-│   ├── migrations/            # Database migrations
-│   │   ├── 001_core_schema.sql
-│   │   ├── 002_indexes.sql
-│   │   ├── 003_rls_policies.sql
-│   │   ├── 004_triggers.sql
-│   │   └── 005_seed_data.sql
-│   ├── tests/                 # Test files
-│   │   ├── config/            # Configuration tests
-│   │   │   └── env.test.ts
-│   │   ├── database/          # Database security tests
-│   │   │   └── security.test.ts
-│   │   ├── middleware/        # Middleware tests
-│   │   │   ├── auth.test.ts
-│   │   │   ├── error.test.ts
-│   │   │   └── logger.test.ts
-│   │   ├── routes/            # Route tests
-│   │   │   ├── auth.test.ts
-│   │   │   ├── exercises.test.ts
-│   │   │   ├── workouts.test.ts
-│   │   │   └── stats.test.ts
-│   │   └── health.test.ts     # API health tests
-│   ├── package.json           # Dependencies & scripts
+│   │   ├── config/            # Env validation & Supabase setup
+│   │   ├── middleware/        # Auth, Logger, Error, Validate
+│   │   ├── routes/            # API endpoints (Auth, Exercises, Workouts, Stats)
+│   │   ├── validators/        # Zod validation schemas
+│   │   ├── utils/             # Utilities (Password, etc.)
+│   │   └── index.ts           # Entry point
+│   ├── migrations/            # Database migrations (001-005)
+│   ├── tests/                 # Vitest suites
+│   │   ├── integration/       # Full system flow tests
+│   │   ├── database/          # RLS & Security tests
+│   │   ├── middleware/        # Middleware logic tests
+│   │   └── routes/            # Endpoint unit tests
+│   └── package.json
 │   ├── tsconfig.json          # TypeScript config (strict)
 │   ├── vitest.config.ts       # Vitest config
 │   ├── eslint.config.js       # ESLint config
@@ -60,18 +28,17 @@ Personal-Gym-Tracker/
 │
 ├── frontend/                   # React + Vite Application
 │   ├── src/
-│   │   ├── components/        # React components
+│   │   ├── components/        # Reusable UI & Navigation
+│   │   │   ├── navigation/    # Header, MobileNav, MobileMenu
 │   │   │   └── ExampleChart.tsx
-│   │   ├── config/            # Configuration
-│   │   │   └── supabase.ts    # Supabase client
-│   │   ├── App.tsx            # Main app component
+│   │   ├── contexts/          # AuthContext for state management
+│   │   ├── pages/             # Page components (Dashboard, Stats, etc.)
+│   │   ├── config/            # Supabase & API config
+│   │   ├── App.tsx            # Main router & layout
 │   │   ├── main.tsx           # Entry point
-│   │   ├── index.css          # TailwindCSS v4 config
-│   │   └── vite-env.d.ts      # Type definitions
-│   ├── tests/                 # Test files
-│   │   ├── setup.ts           # Test setup
-│   │   └── App.test.tsx       # Example tests
-│   ├── package.json           # Dependencies & scripts
+│   │   └── index.css          # TailwindCSS v4 config
+│   ├── tests/                 # Vitest + RTL suites
+│   └── package.json
 │   ├── tsconfig.json          # TypeScript config (strict)
 │   ├── vite.config.ts         # Vite config
 │   ├── vitest.config.ts       # Vitest config
@@ -202,47 +169,17 @@ export async function errorHandler(err: Error, c: Context) {
 
 ### Frontend Patterns
 
-#### 1. Component Composition
+#### 1. Routing & Layout
 
-```typescript
-// Prefer composition over props drilling
-<Dashboard>
-  <Header />
-  <Sidebar />
-  <MainContent>
-    <WorkoutList />
-    <ProgressChart />
-  </MainContent>
-</Dashboard>
-```
+The app uses `react-router-dom` for navigation with a central layout in `App.tsx`. Public routes (Login/Signup) are accessible to all, while feature routes are wrapped in a `ProtectedRoute` component.
 
-#### 2. Custom Hooks
+#### 2. Authentication Context
 
-```typescript
-// hooks/useWorkouts.ts
-export function useWorkouts() {
-  const [workouts, setWorkouts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    // Fetch workouts
-  }, []);
-  
-  return { workouts, loading };
-}
-```
+A global `AuthContext` provides the current user state and loading status throughout the application. It handles Supabase session persistence and automatic token management.
 
-#### 3. Type-Safe Supabase Queries
+#### 3. Visual Analytics
 
-```typescript
-// Generate types: bun run supabase gen types typescript
-import type { Database } from './types/supabase';
-
-const { data } = await supabase
-  .from('workouts')
-  .select('*')
-  .returns<Database['public']['Tables']['workouts']['Row'][]>();
-```
+Charts are implemented using `Recharts`, with custom components like `ExampleChart` handling data transformation and responsive rendering. Integration tests include `ResizeObserver` mocking to ensure chart rendering doesn't break suites.
 
 ## Environment Isolation
 
@@ -349,12 +286,12 @@ Component → Auth Hook → Custom Hook → Supabase Client → Database
 
 ### Planned Features
 
-1. **Authentication**: Supabase Auth integration
-2. **Real-time Updates**: Supabase Realtime subscriptions
-3. **File Uploads**: Supabase Storage for images
-4. **API Versioning**: `/api/v1/` routes
-5. **Rate Limiting**: Protect endpoints
-6. **Caching**: Redis for frequently accessed data
+1. **Real-time Updates**: Supabase Realtime for live workout syncing
+2. **File Uploads**: Supabase Storage for profile/progress photos
+3. **API Versioning**: Formalizing `/api/v1/` route structure
+4. **Rate Limiting**: Protect endpoints from abuse
+5. **Mobile App**: React Native or PWA implementation
+6. **Social Features**: Friend activity and shared routines
 
 ### Scalability
 
