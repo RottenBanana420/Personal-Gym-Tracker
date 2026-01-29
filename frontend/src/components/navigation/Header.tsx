@@ -27,30 +27,41 @@ export function Header() {
 
     return (
         <>
-            <header className="bg-white shadow-md sticky top-0 z-40">
+            <header className="glass-strong sticky top-0 z-40 border-b-2 border-primary-300/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
+                    <div className="flex justify-between items-center h-20">
                         {/* Logo/App Name */}
                         <Link
                             to="/dashboard"
-                            className="flex items-center gap-2 text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
+                            className="flex items-center gap-3 group transition-all duration-250"
+                            data-testid="header-branding"
                         >
-                            <span className="text-2xl">💪</span>
-                            <span className="hidden sm:inline">Gym Tracker</span>
+                            <span className="text-4xl group-hover:scale-110 transition-transform duration-250">💪</span>
+                            <div className="flex flex-col">
+                                <span className="text-2xl font-display font-black gradient-text-primary hidden sm:inline">
+                                    GYM TRACKER
+                                </span>
+                                <span className="text-xs text-gray-500 font-body hidden lg:inline">
+                                    Power Athletics
+                                </span>
+                            </div>
                         </Link>
 
                         {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-6">
+                        <nav className="hidden md:flex items-center gap-8">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.path}
                                     to={link.path}
-                                    className={`font-medium transition-colors ${isActive(link.path)
-                                            ? 'text-primary-600 border-b-2 border-primary-600'
-                                            : 'text-gray-600 hover:text-gray-900'
+                                    className={`relative font-display font-bold text-sm uppercase tracking-wide transition-all duration-250 ${isActive(link.path)
+                                        ? 'text-primary-300'
+                                        : 'text-gray-400 hover:text-gray-200'
                                         }`}
                                 >
                                     {link.label}
+                                    {isActive(link.path) && (
+                                        <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full shadow-[0_0_8px_rgba(192,255,0,0.6)]"></span>
+                                    )}
                                 </Link>
                             ))}
                         </nav>
@@ -58,14 +69,16 @@ export function Header() {
                         {/* User Actions */}
                         <div className="flex items-center gap-4">
                             {/* User Email (Desktop) */}
-                            <span className="hidden lg:inline text-sm text-gray-600">
-                                {user?.email}
-                            </span>
+                            <div className="hidden lg:flex flex-col items-end">
+                                <span className="text-sm text-gray-400 font-body">
+                                    {user?.email}
+                                </span>
+                            </div>
 
                             {/* Logout Button (Desktop) */}
                             <button
                                 onClick={handleLogout}
-                                className="hidden md:block px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                                className="hidden md:block px-5 py-2.5 glass border-2 border-accent-300/30 text-accent-300 rounded-lg font-display font-bold text-sm uppercase tracking-wide hover-glow-accent transition-all duration-250"
                             >
                                 Logout
                             </button>
@@ -73,11 +86,11 @@ export function Header() {
                             {/* Mobile Menu Button */}
                             <button
                                 onClick={() => setIsMobileMenuOpen(true)}
-                                className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                                className="md:hidden p-2 text-primary-300 hover:text-primary-200 transition-colors"
                                 aria-label="Open menu"
                             >
                                 <svg
-                                    className="w-6 h-6"
+                                    className="w-7 h-7"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -85,7 +98,7 @@ export function Header() {
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
-                                        strokeWidth={2}
+                                        strokeWidth={2.5}
                                         d="M4 6h16M4 12h16M4 18h16"
                                     />
                                 </svg>

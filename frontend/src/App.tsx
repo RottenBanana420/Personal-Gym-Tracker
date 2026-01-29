@@ -24,17 +24,17 @@ function App() {
     // Show loading state while checking authentication
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="min-h-screen flex items-center justify-center animated-gradient">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-                    <p className="mt-4 text-gray-600">Loading...</p>
+                    <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-primary-300/20 border-t-primary-300"></div>
+                    <p className="mt-6 text-xl text-gray-400 font-body">Loading...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen">
             {/* Show navigation only for authenticated users */}
             {user && (
                 <>
@@ -44,7 +44,7 @@ function App() {
             )}
 
             {/* Main content area */}
-            <main className={`${user ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8' : ''}`}>
+            <main className={`${user ? 'pb-24 md:pb-8' : ''}`}>
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/login" element={<Login />} />
