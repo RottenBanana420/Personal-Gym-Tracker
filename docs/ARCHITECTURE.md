@@ -80,7 +80,8 @@ Personal-Gym-Tracker/
 │
 └── docs/                       # Documentation
     ├── SETUP.md               # Setup instructions
-    ├── ENV_SETUP.md           # Environment setup
+    ├── ENV_GUIDE.md           # Environment setup guide
+    ├── API.md                 # API documentation
     ├── TESTING.md             # Testing guide
     ├── ARCHITECTURE.md        # This file
     └── DATABASE.md            # Database schema
